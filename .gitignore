@@ -1,0 +1,295 @@
+# ============================================================
+
+# Python
+
+# ============================================================
+
+**pycache**/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual environments
+
+.venv/
+venv/
+env/
+ENV/
+.difinity/
+difinity/
+
+# Conda environment
+
+.conda/
+
+# Python build / packaging
+
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test / coverage
+
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ============================================================
+
+# IDE / Editor
+
+# ============================================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# VS Code local settings
+
+.history/
+
+# ============================================================
+
+# Operating System
+
+# ============================================================
+
+# Windows
+
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+# macOS
+
+.DS_Store
+
+# Linux
+
+*~
+
+# ============================================================
+
+# Environment Variables / Credentials
+
+# ============================================================
+
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.crt
+
+# Do not commit credentials
+
+credentials/
+secrets/
+
+# ============================================================
+
+# Machine Learning Model Files
+
+# ============================================================
+
+# PyTorch
+
+*.pt
+*.pth
+*.ckpt
+
+# ONNX
+
+*.onnx
+
+# TensorRT
+
+*.engine
+*.plan
+
+# OpenVINO generated model files
+
+*.xml
+*.bin
+
+# NOTE:
+
+# best.pt and best_openvino_model are intentionally ignored.
+
+# Store/download model weights separately.
+
+# ============================================================
+
+# OpenVINO Generated Model Directory
+
+# ============================================================
+
+models/*_openvino_model/
+
+# Keep the models directory itself
+
+!models/.gitkeep
+
+# ============================================================
+
+# Input / Output Videos
+
+# ============================================================
+
+# Input videos
+
+data/input_videos/*
+!data/input_videos/.gitkeep
+
+# Generated output videos
+
+data/output_videos/*
+
+# Video formats
+
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.mpeg
+*.mpg
+*.webm
+
+# ============================================================
+
+# Generated Alerts / Evidence
+
+# ============================================================
+
+alerts/
+alerts/*
+
+# Images generated during detection
+
+*.jpg
+*.jpeg
+*.png
+
+# Keep directories if required
+
+!alerts/.gitkeep
+
+# ============================================================
+
+# Reports
+
+# ============================================================
+
+reports/
+reports/*
+
+# Generated CSV files
+
+*.csv
+
+# Keep directory
+
+!reports/.gitkeep
+
+# ============================================================
+
+# Logs
+
+# ============================================================
+
+logs/
+*.log
+*.out
+
+# ============================================================
+
+# Temporary / Runtime Files
+
+# ============================================================
+
+tmp/
+temp/
+*.tmp
+*.temp
+*.cache
+
+# Runtime files
+
+*.pid
+*.lock
+
+# ============================================================
+
+# Ultralytics
+
+# ============================================================
+
+runs/
+runs/**
+
+# Ultralytics cache
+
+*.cache
+
+# ============================================================
+
+# Jupyter Notebook
+
+# ============================================================
+
+.ipynb_checkpoints/
+
+# ============================================================
+
+# Backup Files
+
+# ============================================================
+
+*.bak
+*.backup
+*.old
+
+# Editor backup
+
+*~
+
+# ============================================================
+
+# Project-Specific Generated Files
+
+# ============================================================
+
+# Generated output videos
+
+ocsort_output*.mp4
+
+# Generated PPE reports
+
+video_*_report.csv
+
+# Worker count reports
+
+task1_worker_count.csv
+
+# ============================================================
+
+# Keep Project Structure
+
+# ============================================================
+
+!src/
+!models/
+!data/
+!alerts/
+!reports/
+!data/input_videos/
+!data/output_videos/
