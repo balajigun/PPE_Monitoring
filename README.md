@@ -15,6 +15,7 @@ Manual monitoring can be difficult to scale across large work areas and multiple
 The current system performs the following operations:
 
 * 👷 Worker detection
+* 👥 Worker counting
 * 🆔 Worker tracking
 * 🔄 Worker identity association
 * 🪖 Helmet detection
@@ -26,6 +27,12 @@ The current system performs the following operations:
 * 📊 CSV-based reporting
 * 🎥 Annotated output video generation
 * 👥 Worker count logging
+* Unsafe proximity detection between workers and heavy equipment
+* 📄 Proximity event logging
+* ❤️ Camera/stream health monitoring
+* ⚙️ Application health monitoring
+* 🖥️ GPU monitoring interface
+* 📝 Timestamped application logging
 
 The architecture is modular so that additional safety rules such as unsafe proximity between workers and heavy equipment can be integrated without redesigning the complete pipeline.
 
@@ -44,8 +51,14 @@ The primary objectives of this project are:
 7. Generate structured CSV reports.
 8. Send automated email alerts to supervisors.
 9. Produce an annotated output video for visual verification.
-10. Provide a scalable architecture suitable for industrial deployment.
-11. Provide a design path toward multi-camera and edge-AI deployment.
+10. Detect unsafe proximity between workers and heavy equipment.
+11. Monitor camera/stream health.
+12. Monitor application processing health.
+13. Capture operational logs for debugging and diagnostics.
+14. Provide GPU monitoring hooks for supported environments.
+15. Provide a Docker-based deployment path.
+16. Provide a scalable architecture suitable for industrial deployment.
+17. Provide a design path toward multi-camera and edge-AI deployment.
 
 ---
 
@@ -54,52 +67,61 @@ The primary objectives of this project are:
 The current application follows the pipeline:
 
 ```text
-Input Video
-     │
-     ▼
-┌─────────────────┐
-│   VideoReader   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ YOLO Detector   │
-│ + OC-SORT       │
-└────────┬────────┘
-         │
-         ▼
-┌──────────────────────┐
-│ Detection Objects    │
-│ Worker + PPE Classes │
-└────────┬─────────────┘
-         │
-         ▼
-┌──────────────────────┐
-│ PPE Association Rules │
-└────────┬─────────────┘
-         │
-         ▼
-┌──────────────────────┐
-│ PPE State Tracker    │
-│ Temporal Validation  │
-└────────┬─────────────┘
-         │
-         ├───────────────► CSV Logger
-         │
-         ├───────────────► Worker Count Logger
-         │
-         ├───────────────► Alert Manager
-         │                       │
-         │                       ├── Screenshot
-         │                       └── Email
-         │
-         ▼
-┌──────────────────────┐
-│ Visualization        │
-│ Annotated Video      │
-└──────────────────────┘
-```
+Input Video / Camera Stream
+          │
+          ▼
+┌─────────────────────────┐
+│       VideoReader       │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│      YOLO Detector      │
+│       + OC-SORT         │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│    Detection Objects    │
+│ Worker + PPE + Machine  │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│    PPE Association      │
+│        Rules            │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│    PPE State Tracker    │
+│   Temporal Validation   │
+└────────────┬────────────┘
+             │
+       ┌─────┼───────────────┬─────────────────┐
+       │     │               │                 │
+       ▼     ▼               ▼                 ▼
+     CSV   Worker Count   Alert Manager   Proximity Detector
+                               │                 │
+                               ├─ Screenshot     ├─ Worker
+                               └─ Email          └─ Machinery
+                                                   │
+                                                   ▼
+                                          Proximity Event Logger
 
+             ┌─────────────────────────────────────────┐
+             │          Visualization Layer            │
+             │       Annotated Output Video            │
+             └─────────────────────────────────────────┘
+
+             ┌─────────────────────────────────────────┐
+             │           System Health Layer            │
+             │                                         │
+             │ Camera Health Monitor                   │
+             │ Application Monitor                     │
+             │ GPU Monitor                              │
+             │ Application Logging                     │
+             └─────────────────────────────────────────┘
 ---
 
 # 🔍 PPE Detection
@@ -170,7 +192,7 @@ This supports the worker detection and counting requirement of the assessment.
 
 # 🆔 Worker Tracking
 
-Worker tracking is implemented using **OC-SORT** integrated with the YOLO detection pipeline.
+Worker tracking is implemented using **TrackTrack** integrated with the YOLO detection pipeline.
 
 The tracker provides a temporary tracking ID for each detected worker.
 
@@ -476,7 +498,180 @@ Ignore    Screenshot
              ▼
        Record alert time
 ```
+🚧 Unsafe Proximity Detection
 
+The project includes an implemented unsafe proximity detection module for worker-to-heavy-equipment safety monitoring.
+
+The objective is to identify situations where a worker enters a configurable safety zone around heavy equipment.
+
+Detection Approach
+
+The current implementation uses image-space geometry:
+
+Detect and track workers.
+Detect and track heavy machinery.
+Calculate the worker's bottom-center/foot point.
+Expand the machinery bounding box by a configurable safety margin.
+Check whether the worker foot point enters the machinery safety zone.
+Require the condition to persist for a configurable number of consecutive frames.
+Generate a confirmed unsafe-proximity event.
+
+Conceptually:
+
+Worker Detection
+       │
+       ▼
+Heavy Equipment Detection
+       │
+       ▼
+Track Worker + Equipment
+       │
+       ▼
+Worker Foot Point
+       │
+       ▼
+Expanded Machinery Safety Zone
+       │
+       ▼
+Spatial Proximity Check
+       │
+       ▼
+Temporal Confirmation
+       │
+       ▼
+UNSAFE PROXIMITY EVENT
+       │
+       └── CSV Event
+The implementation uses configurable parameters such as:
+
+safety_zone_margin
+confirmation_frames
+machinery_classes
+
+The proximity event report is generated under:
+
+reports/proximity_events.csv
+
+Proximity visualization output is generated under:
+
+outputs/proximity/
+
+The event information includes fields such as:
+
+worker_id
+machinery_id
+distance_pixels
+safety_zone_margin
+confirmation_frames
+event
+
+Example:
+
+Worker ID 23
+Equipment ID 4
+Distance / zone condition satisfied
+       ↓
+UNSAFE PROXIMITY
+Production Consideration
+
+The current implementation is based on image-space geometry.
+
+For production safety distances expressed in metres, calibrated scene geometry, depth information, or a 3D perception system should be used.
+
+The safety threshold should also be configured according to site-specific safety requirements.
+
+❤️ Camera / Stream Health Monitoring
+
+The application includes a dedicated Camera Health Monitor.
+
+The monitor provides visibility into the health of the input video/camera stream during processing.
+
+Typical health information includes:
+
+Stream connected
+Input FPS
+Frame availability
+Last received frame
+Dropped / failed frame conditions
+
+For a multi-camera production system, the same monitoring concept can be extended to each RTSP stream independently.
+
+A disconnected camera should not stop processing of unrelated camera streams.
+
+⚙️ Application Health Monitoring
+
+The project includes an Application Monitor for measuring the health of the processing pipeline.
+
+The monitor tracks application-level information such as:
+
+Frames processed
+Processing errors
+Processing FPS
+Frame processing latency
+Application runtime
+
+This provides visibility into the complete processing pipeline rather than only model inference.
+
+Conceptually:
+
+Frame Read
+   ↓
+Detection
+   ↓
+Tracking
+   ↓
+PPE Rules
+   ↓
+Proximity Rules
+   ↓
+Alert / Reporting
+   ↓
+Frame Output
+
+Monitoring the end-to-end path provides a more realistic view of application performance.
+
+🖥️ GPU Monitoring
+
+The project includes a GPU Monitor component for collecting GPU-related telemetry where supported.
+
+For NVIDIA GPU environments, the monitoring layer can collect metrics such as:
+
+GPU utilization
+GPU memory usage
+GPU temperature
+
+The current development environment uses an Intel GPU, so NVIDIA-specific NVML telemetry is not available on that machine.
+
+The monitoring component therefore reports unavailable NVIDIA telemetry rather than treating unavailable data as valid measurements.
+
+For NVIDIA production deployments, including Jetson or discrete NVIDIA GPU environments, platform-specific telemetry can be used.
+
+For Intel GPU deployment, Intel-specific telemetry should be used when hardware-level GPU monitoring is required.
+
+📝 Application Logging
+
+The application captures console output into timestamped log files.
+
+Logs provide operational information such as:
+
+Application startup
+Video information
+Component initialization
+Processing errors
+Monitoring information
+Application completion
+
+Logs are stored under:
+
+logs/
+
+Logging is useful for:
+
+Debugging
+Failure analysis
+Performance investigation
+Production diagnostics
+Deployment verification
 ---
 
 # 📊 CSV Reporting
@@ -940,54 +1135,6 @@ Events should be buffered or logged so that transient storage failures do not im
 
 ---
 
-# 🚨 Unsafe Proximity Detection
-
-Unsafe proximity detection is planned as an additional safety rule.
-
-The objective is to identify situations where a worker comes too close to heavy equipment.
-
-A conceptual pipeline is:
-
-```text
-Worker Detection
-       │
-       ▼
-Heavy Equipment Detection
-       │
-       ▼
-Track Worker + Equipment
-       │
-       ▼
-Estimate Relative Distance
-       │
-       ▼
-Compare Against Safety Threshold
-       │
-       ▼
-Unsafe Proximity Event
-       │
-       ├── Screenshot
-       └── Alert
-```
-
-For a production implementation, simple image-space distance can be used as an initial approximation, but calibrated scene geometry or depth information would provide a more meaningful physical-distance estimate.
-
-The threshold should be configurable according to the site's safety requirements.
-
-Example:
-
-```text
-Worker ID 23
-Equipment ID 4
-Distance < Safety Threshold
-        ↓
-UNSAFE PROXIMITY
-```
-
-This feature remains a planned extension of the current assessment implementation.
-
----
-
 # 🧰 Technologies Used
 
 ## Programming
@@ -1003,7 +1150,7 @@ This feature remains a planned extension of the current assessment implementatio
 
 ## Object Tracking
 
-* OC-SORT
+* TrackTrack
 
 ## Computer Vision
 
@@ -1637,7 +1784,6 @@ The project also demonstrates the transition from a standalone computer vision m
 | Email Alerts                | ✅ Implemented              |
 | CSV Reporting               | ✅ Implemented              |
 | Annotated Output Video      | ✅ Implemented              |
-| Unsafe Proximity Detection  | 🔄 Planned                 |
 | Multi-Camera Deployment     | 🔄 Production Design       |
 | TensorRT Optimization       | 🔄 Production Optimization |
 | Jetson AGX Orin Deployment  | 🔄 Production Design       |
