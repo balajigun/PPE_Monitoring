@@ -38,6 +38,34 @@ The architecture is modular so that additional safety rules such as unsafe proxi
 
 ---
 
+## Quick Start
+
+### 1. Clone the repository
+
+git clone https://github.com/balajigun/PPE_Monitoring.git
+
+cd PPE_Monitoring
+
+### 2. Install dependencies
+
+pip install -r requirements.txt
+
+### 3. Add model
+
+Place the trained model at:
+
+models/best.pt
+
+### 4. Add input video
+
+Place the input video at:
+
+data/input_videos/ppe_monitoring.mp4
+
+### 5. Run
+
+python src/main.py
+
 # 🎯 Objectives
 
 The primary objectives of this project are:

@@ -88,7 +88,7 @@ def main():
 
     output_video_path = os.path.join(
         OUTPUT_VIDEO_DIR,
-        "ocsort_output_3.mp4"
+        "tracktrack_output.mp4"
     )
 
     print(
